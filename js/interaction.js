@@ -92,6 +92,42 @@ function drawSimplex(pts) { // draw a simplex from an array of point IDs
     ctx.stroke()
 }
 
+function get_nsimplex_candidates_helper(n, k, j) {
+    console.log(k,n,j)
+    if (k === 1) {
+        return _.range(j).map((x) => [x])
+    }
+    let v = []
+    for (let i = k-1; i < j; i++) {
+
+        let z = get_nsimplex_candidates_helper(n, k - 1, i)
+        for (const x of z) {
+            x.push(i)
+        }
+        v.push(...z)
+    }
+    return v
+}
+
+function get_nsimplex_candidates(n, k) {
+    if ( k > n) {
+        return []
+    }
+    if (k === 1) {
+        return _.range(n).map((x) => [x])
+    }
+    let v = []
+    for (let i = k-1; i < n; i++) {
+        let z = get_nsimplex_candidates_helper(n, k - 1, i)
+        for (const x of z) {
+            x.push(i)
+        }
+        v.push(...z)
+        console.log(i)
+    }
+    return v
+}
+
 function cartesian(n, k) {
     if (k === 1) {
         return _.range(n).map((x) => [x])
@@ -144,7 +180,7 @@ function get_1simplices() {
 
 function get_nsimplices(n) { // only for n > 2
     simplices[n - 1] = [];
-    let candidates = cartesian(points.length, n + 1)
+    let candidates = get_nsimplex_candidates(points.length, n + 1)
     for (const cnd of candidates) {
         let found = 0
 
