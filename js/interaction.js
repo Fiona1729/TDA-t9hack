@@ -26,6 +26,8 @@ mode_select.oninput = function () {
 epsilon_.oninput = function () {
     epsilon = this.value / 50
     get_1simplices()
+    get_nsimplices(2)
+    get_nsimplices(3)
     requestAnimationFrame(do_update)
 }
 
@@ -47,7 +49,7 @@ let Point = class Point {
     }
 }
 
-
+/*
 let nSimplex = class nSimplex { // ordered list of points
     // 0-simplex is point, 1-simplex is line, 2-simplex triangle, etc.
     // so points should be n+1 points for the n-simplex
@@ -89,13 +91,35 @@ let nSimplex = class nSimplex { // ordered list of points
         ctx.strokeStyle = "rgb(40, 40, 40)"
         ctx.stroke()
     }
+}*/
+
+function drawSimplex(pts) { // draw a simplex from an array of point IDs
+    ctx.beginPath()
+    ctx.moveTo(points[pts[0]].x, points[pts[0]].y)
+    for (let i = 1; i < pts.length; i++) {
+        ctx.lineTo(points[pts[i]].x, points[pts[i]].y)
+    }
+    if (pts.length > 2) {
+        ctx.fillStyle = "rgba(20, 20, 255, 0.1)"
+        ctx.fill()
+    }
+    ctx.strokeStyle = "rgb(40, 40, 40)"
+    ctx.stroke()
 }
 
 function cartesian(n, k) {
     if (k === 1) {
-        return _.range(n)
+        return _.range(n).map((x) => [x])
     }
-    return _.range(n).forEach((n) => cartesian(n, k - 1).forEach(push(n).flatten())
+    let v = []
+    for (let i = 0; i < n; i++) {
+        let z = cartesian(n, k - 1)
+        for (const x of z) {
+            x.push(i)
+        }
+        v.push(...z)
+    }
+    return v
 }
 
 function calcDistances() {
@@ -122,16 +146,38 @@ function get_1simplices() {
                 continue
             }
             if (distMatrix[i][k] < epsilon * 2) {
-                simplices[0].push(new nSimplex([points[i], points[k]]))
+                simplices[0].push([i, k])
             }
         }
     }
 }
 
-function get_nsimplices(n) {
-    simplices[n - 1] = []
-    candidates = _.zip(..._.range(n).map(() => _.range(points.length)))
-    candidates.forEach(console.log)
+function get_nsimplices(n) { // only for n > 2
+    simplices[n - 1] = [];
+    let candidates = cartesian(points.length, n + 1)
+    for (const cnd of candidates) {
+        let found = 0
+
+        for (let smplx of simplices[n - 2]) {
+            if (_.isEqual(cnd.slice(1), smplx)) {
+                found |= 1
+            }
+            if (_.isEqual(cnd.slice(0, cnd.length - 1), smplx)) {
+                found |= 2
+            }
+        }
+        for (let smplx of simplices[0]){
+            if (_.isEqual([cnd[0], cnd[cnd.length - 1]], smplx)) {
+                found |= 4
+            }
+        }
+        if (found === 7) {
+            if (n === 3) {
+                console.log('tetrahedron')
+            }
+            simplices[n - 1].push(cnd)
+        }
+    }
 }
 
 
@@ -140,25 +186,28 @@ window.addEventListener('click', function (event) {
     let y = event.y - c.offsetTop;
 
     if (x < 0 || x > c.width || y < 0 || y > c.height) {
-        console.log('bad')
         return
     }
     if (interact_mode === "add") {
-        console.log("added " + points.length + "-th point")
+        //console.log("added " + points.length + "-th point")
         // calc offsets
         let p = new Point(x, y)
         points.push(p)
 
         calcDistances()
         get_1simplices()
+        get_nsimplices(2)
+        get_nsimplices(3)
     }
     if (interact_mode === "remove") {
         for (let i = 0; i < points.length; i++) {
             if (points[i].d(x, y) <= 5) {
-                console.log('removed ' + i + '-th point')
+                //console.log('removed ' + i + '-th point')
                 points.splice(i, 1);
                 calcDistances()
                 get_1simplices()
+                get_nsimplices(2)
+                get_nsimplices(3)
                 requestAnimationFrame(do_update)
                 return
             }
@@ -186,7 +235,6 @@ function do_update(t) {
 
     ctx.fillStyle = "rgb(0, 0, 0)"
     for (const p of points) {
-        console.log('doing thing')
         ctx.beginPath()
         ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI, false)
         ctx.fill()
@@ -194,7 +242,7 @@ function do_update(t) {
 
     for (let i = 0; i < simplices.length; i++) {
         for (const splx of simplices[i]) {
-            splx.draw()
+            drawSimplex(splx)
         }
     }
 }
