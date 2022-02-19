@@ -91,6 +91,13 @@ let nSimplex = class nSimplex { // ordered list of points
     }
 }
 
+function cartesian(n, k) {
+    if (k === 1) {
+        return _.range(n)
+    }
+    return _.range(n).forEach((n) => cartesian(n, k - 1).forEach(push(n).flatten())
+}
+
 function calcDistances() {
     distMatrix = []
     simplices[0] = []
@@ -119,6 +126,12 @@ function get_1simplices() {
             }
         }
     }
+}
+
+function get_nsimplices(n) {
+    simplices[n - 1] = []
+    candidates = _.zip(..._.range(n).map(() => _.range(points.length)))
+    candidates.forEach(console.log)
 }
 
 
