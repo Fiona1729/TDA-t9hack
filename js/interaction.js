@@ -23,6 +23,25 @@ ctx = c.getContext("2d")
 
 ctx.fill()
 
+
+// Variable for timeout calls to recalculate
+var recalculateTimeout = null
+
+// Recalculate simplices
+function recalculate () {
+    console.log('recalculating')
+    get_1simplices()
+    get_nsimplices(2)
+    get_nsimplices(3)
+    requestAnimationFrame(do_update)
+}
+
+// Set recaclulate timeout
+function do_recalculate () {
+    if (recalculateTimeout) {clearTimeout(recalculateTimeout)}
+    recalculateTimeout = setTimeout(recalculate, 20)
+}
+
 mode_select.oninput = function () {
     interact_mode = this.value
 }
@@ -32,10 +51,7 @@ epsilon_.oninput = function () {
     for (let x of distCrossings) {
         x = x / 2
         if (((lastepsilon < x) && (x < epsilon)) || ((epsilon < x) && (x < lastepsilon))) {
-            console.log('recalculating')
-            get_1simplices()
-            get_nsimplices(2)
-            get_nsimplices(3)
+            do_recalculate()
         }
     }
     lastepsilon = epsilon
