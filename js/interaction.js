@@ -23,6 +23,21 @@ ctx = c.getContext("2d")
 
 ctx.fill()
 
+// Simplex color coding 
+function getColor(n) {
+    // 2 simplices
+    if (n === 3) {
+        return "rgba(20, 20, 255, 0.1)"
+    }
+    // 3 simplices
+    if (n === 4) {
+        return "rgba(20, 255, 20, 0.1)"
+    }
+    // otherwise
+    return "rgba(255, 20, 255, 0.1)"
+}
+
+
 
 // Variable for timeout calls to recalculate
 var recalculateTimeout = null
@@ -101,7 +116,7 @@ function drawSimplex(pts) { // draw a simplex from an array of point IDs
         ctx.lineTo(points[pts[i]].x, points[pts[i]].y)
     }
     if (pts.length > 2) {
-        ctx.fillStyle = "rgba(20, 20, 255, 0.1)"
+        ctx.fillStyle = getColor(pts.length) 
         ctx.fill()
     }
     ctx.strokeStyle = "rgb(40, 40, 40)"
