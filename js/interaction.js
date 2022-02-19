@@ -1,6 +1,9 @@
 c = document.getElementById('tdacanvas')
 epsilon_ = document.getElementById('epsilon')
 
+mode_select = document.getElementById('mode_select')
+interact_mode = "pan"
+
 let Chain = class Chain { // a chain is an element on the free abelian group on simplices
     constructor(simplices, signs) {
         this.simplices = simplices
@@ -64,13 +67,21 @@ ctx.fill()
 
 
 c.addEventListener('click', function (event) {
-    console.log("added " + points.length + "-th point")
-    // calc offsets
-    let p = new Point(points.length, event.x - c.offsetLeft, event.y - c.offsetTop)
-    points.push(p)
-    // update
-    requestAnimationFrame(do_update)
+    if (interact_mode === "add") {
+        console.log("added " + points.length + "-th point")
+        // calc offsets
+        let p = new Point(points.length, event.x - c.offsetLeft, event.y - c.offsetTop)
+        points.push(p)
+        // update
+        requestAnimationFrame(do_update)
+    }
+    if (interact_mode === "remove") {
+    }
 })
+
+mode_select.oninput = function() {
+    interact_mode = this.value
+}
 
 epsilon_.oninput = function () {
     epsilon = this.value / 50
