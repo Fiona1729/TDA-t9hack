@@ -93,7 +93,6 @@ function drawSimplex(pts) { // draw a simplex from an array of point IDs
 }
 
 function get_nsimplex_candidates_helper(n, k, j) {
-    console.log(k,n,j)
     if (k === 1) {
         return _.range(j).map((x) => [x])
     }
@@ -123,7 +122,6 @@ function get_nsimplex_candidates(n, k) {
             x.push(i)
         }
         v.push(...z)
-        console.log(i)
     }
     return v
 }
