@@ -120,12 +120,15 @@ function boundary(n) { // get n-th boundary matrix
 
     let boundaryMat = Array(num_n_smplx).fill(0).map(() => new Array(num_n_1_smplx).fill(0));
 
-    for (let i = 0; i < num_n_smplx; i++) {
-        let nsmplx = simplices[n - 1][i]
-        for (let j = 0; j < n + 1; j++) {
-            boundaryMat[i][nsmplx[j]] = Math.pow(-1, j)
+    if (n === 1) {
+        for (let i = 0; i < num_n_smplx; i++) {
+            let nsmplx = simplices[n - 1][i]
+            for (let j = 0; j < n + 1; j++) {
+                boundaryMat[i][nsmplx[j]] = Math.pow(-1, j)
+            }
         }
     }
+
     console.log(n + '-boundary')
     console.log(num_n_smplx + ' x ' + num_n_1_smplx)
     console.log('rows:')
