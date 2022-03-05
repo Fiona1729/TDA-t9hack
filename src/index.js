@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 let c = document.getElementById('tdacanvas')
 
-let showballs = false;
+let showballs = true;
 
 let interact_mode = "add"
 
