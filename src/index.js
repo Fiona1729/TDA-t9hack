@@ -123,7 +123,7 @@ function boundary(n) { // get n-th boundary matrix
     for (let i = 0; i < num_n_smplx; i++) {
         let nsmplx = simplices[n - 1][i]
         for (let j = 0; j < n + 1; j++) {
-            boundaryMat[i][nsmplx[j]] = Math.pow(-1, j + 1)
+            boundaryMat[i][nsmplx[j]] = Math.pow(-1, j)
         }
     }
     console.log(n + '-boundary')
