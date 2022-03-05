@@ -61,6 +61,7 @@ function recalculate() {
     get_nsimplices(3)
     get_nsimplices(4)
     requestAnimationFrame(do_update)
+    document.getElementById('homologyresults').innerHTML = computeHomology(1) + '\n' + computeHomology(2)
     computeHomology(1)
 }
 
@@ -189,9 +190,7 @@ function computeHomology(n) {
         ai = new NormalForm(A).diag
     }
 
-    let homstring = ""
-
-    console.log('m:', m, 'r', r, 's:', s)
+    let homstring = "H_" + n + " = "
 
     for (const torsion of ai) {
         if (torsion !== 1) {
@@ -201,7 +200,7 @@ function computeHomology(n) {
 
     homstring += "ℤ^" + (m - r - s).toString()
 
-    document.getElementById('homologyresults').innerHTML = homstring
+    return homstring
 }
 
 
@@ -213,7 +212,7 @@ function drawSimplex(pts) { // draw a simplex from an array of point IDs
     let outer = grahamScan(positions)
     ctx.beginPath()
     ctx.moveTo(outer[0][0], outer[0][1])
-    for (let i = 1; i < pts.length; i++) {
+    for (let i = 1; i < outer.length; i++) {
         ctx.lineTo(outer[i][0], outer[i][1])
     }
     if (pts.length > 2) {
