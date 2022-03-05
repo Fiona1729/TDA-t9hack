@@ -1,6 +1,11 @@
-c = document.getElementById('tdacanvas')
-epsilon_ = document.getElementById('epsilon')
-mode_select = document.getElementById('mode_select')
+import {NormalForm, isZero} from "@tdajs/normal-form";
+import {grahamScan} from 'flo-graham-scan'
+import _ from 'lodash'
+
+let c = document.getElementById('tdacanvas')
+let epsilon_ = document.getElementById('epsilon')
+let mode_select = document.getElementById('mode_select')
+let results = document.getElementById('homologyresults')
 
 let interact_mode = "add"
 
@@ -16,10 +21,11 @@ let adjMatrix = []
 
 let distCrossings = []
 
-c.width = window.innerWidth
-c.height = window.innerHeight
 
-ctx = c.getContext("2d")
+c.width = window.innerWidth
+c.height = window.innerHeight - 200
+
+let ctx = c.getContext("2d")
 
 ctx.fill()
 
@@ -38,22 +44,25 @@ function getColor(n) {
 }
 
 
-
 // Variable for timeout calls to recalculate
 var recalculateTimeout = null
 
 // Recalculate simplices
-function recalculate () {
+function recalculate() {
     console.log('recalculating')
     get_1simplices()
     get_nsimplices(2)
     get_nsimplices(3)
+    get_nsimplices(4)
     requestAnimationFrame(do_update)
+    computeHomology(1)
 }
 
 // Set recaclulate timeout
-function do_recalculate () {
-    if (recalculateTimeout) {clearTimeout(recalculateTimeout)}
+function do_recalculate() {
+    if (recalculateTimeout) {
+        clearTimeout(recalculateTimeout)
+    }
     recalculateTimeout = setTimeout(recalculate, 20)
 }
 
@@ -73,13 +82,6 @@ epsilon_.oninput = function () {
     requestAnimationFrame(do_update)
 }
 
-let Chain = class Chain { // a chain is an element on the free abelian group on simplices
-    constructor(simplices, signs) {
-        this.simplices = simplices
-        this.signs = signs
-    }
-}
-
 let Point = class Point {
     constructor(x, y) {
         this.x = x
@@ -95,28 +97,94 @@ function face(i, smplx) {
     return smplx.splice(i, 1);
 }
 
-function boundary(smplx) {
-    let faces = []
-    let signs = []
-    for (let i = 0; i < this.n; n++) {
-        faces.push(this.face(i))
-        signs.push(i % 2 === 0 ? 1 : -1) // -1^i in the usual formula
+function rank(m) {
+    if (isZero(m)) {
+        return 0
     }
-    return new Chain(
-        faces,
-        signs
-    )
+    let smith = new NormalForm(m);
+    return smith.diag.length
+}
+
+function boundary(n) { // get n-th boundary matrix
+    let num_n_smplx = simplices[n - 1].length
+    let num_n_1_smplx = 0
+    // n-1 simplices are points
+    if (n === 1) {
+        num_n_1_smplx = points.length
+    } else {
+        num_n_1_smplx = simplices[n - 2].length
+    }
+    if (num_n_smplx === 0) {
+        return new Array(1).fill(0).map(() => new Array(num_n_1_smplx).fill(0));
+    }
+
+    let boundaryMat = Array(num_n_smplx).fill(0).map(() => new Array(num_n_1_smplx).fill(0));
+
+    for (let i = 0; i < num_n_smplx; i++) {
+        let nsmplx = simplices[n - 1][i]
+        for (let j = 0; j < n + 1; j++) {
+            boundaryMat[i][nsmplx[j]] = Math.pow(-1, j + 1)
+        }
+    }
+    console.log(n + '-boundary')
+    console.log(num_n_smplx + ' x ' + num_n_1_smplx)
+    console.log('rows:')
+    console.log(simplices[n - 1])
+    console.log('columns:')
+    console.log(simplices[n - 2])
+    console.log(boundaryMat)
+    return boundaryMat
+}
+
+function computeHomology(n) {
+    // Given Z^l --A-> Z^m --B--> Z^k s.t. BA = 0, the homology at middle is given by
+    // r = rank(A), s = rank(B), a_i are the elementary divisors of A
+    // \oplus_{i=1}^{r} Z/a_i \oplus Z^(m-r-s)
+
+
+    let m = simplices[n - 1].length
+
+    let A = boundary(n)
+    let B = boundary(n + 1)
+
+    let r = rank(A)
+    let s = rank(B)
+
+    let ai = []
+
+    if (!isZero(A)) {
+        ai = new NormalForm(A).diag
+    }
+
+    let homstring = ""
+
+    console.log('m:', m, 'r', r, 's:', s)
+
+    for (const torsion of ai) {
+        if (torsion !== 1) {
+            homstring += "ℤ/" + torsion.toString() + " "
+        }
+    }
+
+    homstring += "ℤ^" + (m - r - s).toString()
+
+    results.innerHTML = homstring
 }
 
 
 function drawSimplex(pts) { // draw a simplex from an array of point IDs
+    let positions = []
+    for (const id of pts) {
+        positions.push([points[id].x, points[id].y])
+    }
+    let outer = grahamScan(positions)
     ctx.beginPath()
-    ctx.moveTo(points[pts[0]].x, points[pts[0]].y)
+    ctx.moveTo(outer[0][0], outer[0][1])
     for (let i = 1; i < pts.length; i++) {
-        ctx.lineTo(points[pts[i]].x, points[pts[i]].y)
+        ctx.lineTo(outer[i][0], outer[i][1])
     }
     if (pts.length > 2) {
-        ctx.fillStyle = getColor(pts.length) 
+        ctx.fillStyle = getColor(pts.length)
         ctx.fill()
     }
     ctx.strokeStyle = "rgb(40, 40, 40)"
@@ -128,7 +196,7 @@ function get_nsimplex_candidates_helper(n, k, j) {
         return _.range(j).map((x) => [x])
     }
     let v = []
-    for (let i = k-1; i < j; i++) {
+    for (let i = k - 1; i < j; i++) {
 
         let z = get_nsimplex_candidates_helper(n, k - 1, i)
         for (const x of z) {
@@ -140,14 +208,14 @@ function get_nsimplex_candidates_helper(n, k, j) {
 }
 
 function get_nsimplex_candidates(n, k) {
-    if ( k > n) {
+    if (k > n) {
         return []
     }
     if (k === 1) {
         return _.range(n).map((x) => [x])
     }
     let v = []
-    for (let i = k-1; i < n; i++) {
+    for (let i = k - 1; i < n; i++) {
         let z = get_nsimplex_candidates_helper(n, k - 1, i)
         for (const x of z) {
             x.push(i)
@@ -245,11 +313,8 @@ window.addEventListener('click', function (event) {
         // calc offsets
         let p = new Point(x, y)
         points.push(p)
-
         calcDistances()
-        get_1simplices()
-        get_nsimplices(2)
-        get_nsimplices(3)
+        do_recalculate()
     }
     if (interact_mode === "remove") {
         for (let i = 0; i < points.length; i++) {
@@ -257,9 +322,7 @@ window.addEventListener('click', function (event) {
                 //console.log('removed ' + i + '-th point')
                 points.splice(i, 1);
                 calcDistances()
-                get_1simplices()
-                get_nsimplices(2)
-                get_nsimplices(3)
+                do_recalculate()
                 requestAnimationFrame(do_update)
                 return
             }
@@ -298,6 +361,7 @@ function do_update(t) {
         }
     }
 }
+
 
 //setInterval(function () {requestAnimationFrame(do_update)}, 500)
 requestAnimationFrame(do_update)
