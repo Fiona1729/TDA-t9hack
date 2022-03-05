@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch",
-    "start": "webpack serve"
+    "start": "webpack serve",
+    "blog": "webpack; cp ./dist/tda.js ../assets/js/tda.js"
   },
   "author": "",
   "license": "ISC",
