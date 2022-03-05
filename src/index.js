@@ -29,6 +29,13 @@ let ctx = c.getContext("2d")
 
 ctx.fill()
 
+function arrayEquals(a, b) {
+    return Array.isArray(a) &&
+        Array.isArray(b) &&
+        a.length === b.length &&
+        a.every((val, index) => val === b[index]);
+}
+
 // Simplex color coding 
 function getColor(n) {
     // 2 simplices
@@ -94,7 +101,9 @@ let Point = class Point {
 }
 
 function face(i, smplx) {
-    return smplx.splice(i, 1);
+    let new_smplx = [...smplx]
+    new_smplx.splice(i, 1);
+    return new_smplx
 }
 
 function rank(m) {
@@ -125,6 +134,22 @@ function boundary(n) { // get n-th boundary matrix
             let nsmplx = simplices[n - 1][i]
             for (let j = 0; j < n + 1; j++) {
                 boundaryMat[i][nsmplx[j]] = Math.pow(-1, j)
+            }
+        }
+    } else {
+        for (let i = 0; i < num_n_smplx; i++) {
+            let nsmplx = simplices[n - 1][i]
+
+            for (let j = 0; j < num_n_1_smplx; j++) {
+
+                let n1_smplx = simplices[n - 2][j];
+
+                for (let fidx = 0; fidx < n + 1; fidx++) {
+                    let testsmplx = face(fidx, nsmplx)
+                    if (arrayEquals(testsmplx, n1_smplx)) {
+                        boundaryMat[i][j] = Math.pow(-1, fidx)
+                    }
+                }
             }
         }
     }
