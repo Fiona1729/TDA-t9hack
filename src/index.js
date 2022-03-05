@@ -1,11 +1,10 @@
-import {NormalForm, isZero} from "@tdajs/normal-form";
+import {isZero, NormalForm} from "@tdajs/normal-form";
 import {grahamScan} from 'flo-graham-scan'
 import _ from 'lodash'
 
 let c = document.getElementById('tdacanvas')
-let epsilon_ = document.getElementById('epsilon')
-let mode_select = document.getElementById('mode_select')
-let results = document.getElementById('homologyresults')
+
+let showballs = true;
 
 let interact_mode = "add"
 
@@ -73,11 +72,11 @@ function do_recalculate() {
     recalculateTimeout = setTimeout(recalculate, 20)
 }
 
-mode_select.oninput = function () {
+document.getElementById('mode_select').oninput = function () {
     interact_mode = this.value
 }
 
-epsilon_.oninput = function () {
+document.getElementById('epsilon').oninput = function () {
     epsilon = this.value / 50
     for (let x of distCrossings) {
         x = x / 2
@@ -88,6 +87,12 @@ epsilon_.oninput = function () {
     lastepsilon = epsilon
     requestAnimationFrame(do_update)
 }
+
+document.getElementById('showballs').oninput = function () {
+    showballs = this.checked
+    requestAnimationFrame(do_update)
+}
+
 
 let Point = class Point {
     constructor(x, y) {
@@ -196,7 +201,7 @@ function computeHomology(n) {
 
     homstring += "ℤ^" + (m - r - s).toString()
 
-    results.innerHTML = homstring
+    document.getElementById('homologyresults').innerHTML = homstring
 }
 
 
@@ -365,15 +370,18 @@ function do_update(t) {
 
     ctx.fillStyle = "rgb(220, 220, 220)"
     ctx.strokeStyle = "rgb(0, 0, 255)"
-    for (const p of points) {
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, epsilon, 0, 2 * Math.PI, false)
-        ctx.fill()
-    }
-    for (const p of points) {
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, epsilon, 0, 2 * Math.PI, false)
-        ctx.stroke()
+
+    if (showballs) {
+        for (const p of points) {
+            ctx.beginPath()
+            ctx.arc(p.x, p.y, epsilon, 0, 2 * Math.PI, false)
+            ctx.fill()
+        }
+        for (const p of points) {
+            ctx.beginPath()
+            ctx.arc(p.x, p.y, epsilon, 0, 2 * Math.PI, false)
+            ctx.stroke()
+        }
     }
 
     ctx.fillStyle = "rgb(0, 0, 0)"
