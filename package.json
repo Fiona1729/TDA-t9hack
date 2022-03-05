@@ -5,7 +5,8 @@
   "private": "true",
   "scripts": {
     "build": "webpack",
-    "start": "webpack --watch"
+    "watch": "webpack --watch",
+    "start": "webpack serve"
   },
   "author": "",
   "license": "ISC",
