@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 let c = document.getElementById('tdacanvas')
 
-let showballs = true;
+let showballs = false;
 
 let interact_mode = "add"
 
@@ -333,16 +333,20 @@ function get_nsimplices(n) { // only for n > 2
 }
 
 
+function get_real_pos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return [evt.clientX - rect.left, evt.clientY - rect.top]
+}
+
 window.addEventListener('click', function (event) {
-    let x = event.x - c.offsetLeft;
-    let y = event.y - c.offsetTop;
+    let pos = get_real_pos(c, event)
+    let x = pos[0];
+    let y = pos[1]
 
     if (x < 0 || x > c.width || y < 0 || y > c.height) {
         return
     }
     if (interact_mode === "add") {
-        //console.log("added " + points.length + "-th point")
-        // calc offsets
         let p = new Point(x, y)
         points.push(p)
         calcDistances()
@@ -367,7 +371,7 @@ function do_update(t) {
     //requestAnimationFrame(do_update)
     ctx.clearRect(0, 0, c.width, c.height)
 
-    ctx.fillStyle = "rgb(220, 220, 220)"
+    ctx.fillStyle = "rgba(220, 220, 220, 30)"
     ctx.strokeStyle = "rgb(0, 0, 255)"
 
     if (showballs) {
