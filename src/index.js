@@ -58,14 +58,13 @@ function recalculate() {
     console.log('recalculating')
     get_1simplices()
     get_nsimplices(2)
-    get_nsimplices(3)
-    get_nsimplices(4)
+    //get_nsimplices(3)
+    //get_nsimplices(4)
     requestAnimationFrame(do_update)
-    document.getElementById('homologyresults').innerHTML = computeHomology(1) + '\n' + computeHomology(2)
-    computeHomology(1)
+    document.getElementById('homologyresults').innerHTML = computeHomology(1) //+ '\n' + computeHomology(2)
 }
 
-// Set recaclulate timeout
+// Set recalculate timeout
 function do_recalculate() {
     if (recalculateTimeout) {
         clearTimeout(recalculateTimeout)
